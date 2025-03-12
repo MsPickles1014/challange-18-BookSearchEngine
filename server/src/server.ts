@@ -4,7 +4,8 @@ import type { Request, Response } from 'express';
 // Import the ApolloServer class
 import {ApolloServer,} from '@apollo/server';
 import {expressMiddleware} from '@apollo/server/express4';
-import { authenticateToken } from './services/auth-service.js';
+import { authenticateGraphQL } from './services/auth.js';
+
 // Import the two parts of a GraphQL schema
 import { typeDefs, resolvers } from './schemas/index.js';
 import db from './config/connection.js';
@@ -24,13 +25,16 @@ const startApolloServer = async () => {
   await db;
 
   app.use(express.urlencoded({ extended: false }));
+  
   app.use(express.json());
+ 
+  app.use('/graphql', expressMiddleware(server, {
+    context: async ({ req }: { req: Request }) => {
+      return await authenticateGraphQL({ req });  // ✅ Fix: Ensures a Promise is returned
+    },
+  }));
 
-  app.use('/graphql', expressMiddleware(server as any,
-    {
-      context: authenticateToken as any
-    }
-  ));
+  
 
   if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../client/dist')));
@@ -49,33 +53,3 @@ const startApolloServer = async () => {
 
 // Call the async function to start the server
 startApolloServer();
-
-
-
-
-// //I reccomend getting rid of the code below but you can comment it out
-// import express from 'express';
-// import path from 'node:path';
-// import db from './config/connection.js';
-// import routes from './routes/index.js';  // to disable restful API, comment out this line. Doing so unplugs the routes from our server
-
-// const app = express();
-// const PORT = process.env.PORT || 3001;
-
-// app.use(express.urlencoded({ extended: true }));
-// app.use(express.json());
-
-// // if we're in production, serve client/build as static assets
-// if (process.env.NODE_ENV === 'production') {
-//   app.use(express.static(path.join(__dirname, '../client/build')));
-// }
-
-// app.use(routes);  // to disable restful API, comment out this line, unplugs the routes from our server
-
-// db.once('open', () => {
-//   app.listen(PORT, () => console.log(`🌍 Now listening on localhost:${PORT}`));
-// });
-
-
-
-// Uncomment this code below

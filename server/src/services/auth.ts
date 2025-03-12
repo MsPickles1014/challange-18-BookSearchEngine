@@ -1,16 +1,41 @@
-import type { Request } from 'express';
+// auth.ts 
+
+import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { GraphQLError } from 'graphql';
 import dotenv from 'dotenv';
 dotenv.config();
 
+const SECRET_KEY = process.env.JWT_SECRET_KEY;
+if (!SECRET_KEY) {
+  throw new Error("❌ Missing JWT_SECRET_KEY in environment variables");
+}
 interface JwtPayload {
   _id: unknown;
   username: string;
   email: string,
 }
+export const authenticateGraphQL = ({ req }: { req: Request }) => {
+  let token = req.body.token || req.query.token || req.headers.authorization;
 
-export const authenticateToken = ({ req }: { req: Request }) => {
+  if (req.headers.authorization) {
+    token = token.split(' ').pop()?.trim();
+  }
+
+  if (!token) {
+    return { user: null }; // ✅ Return `{ user: null }` for GraphQL
+  }
+
+  try {
+    const { data }: any = jwt.verify(token, SECRET_KEY, { maxAge: '2h' });
+    return { user: data as JwtPayload };  // ✅ Return `{ user }` for GraphQL context
+  } catch (err) {
+    console.log('❌ Invalid token');
+    return { user: null };
+  }
+};
+
+export const authenticateToken = (req: Request, res?: Response, next?: NextFunction) => {
   // allows token to be sent via req.body, req.query, or headers
   let token = req.body.token || req.query.token || req.headers.authorization;
 
@@ -19,17 +44,26 @@ export const authenticateToken = ({ req }: { req: Request }) => {
   }
 
   if (!token) {
-    return req;
+    if (res && next) {
+      return res.status(401).json({ message: 'Unauthorized: Token required' });
+    }
+    return { user: null };
   }
 
   try {
-    const { data }: any = jwt.verify(token, process.env.JWT_SECRET_KEY || '', { maxAge: '2hr' });
+    const { data }: any = jwt.verify(token, SECRET_KEY, { maxAge: '2h' });
     req.user = data as JwtPayload;
-  } catch (err) {
-    console.log('Invalid token');
-  }
 
-  return req;
+    if (next) {
+      return next();  // ✅ Express API continues execution
+    }
+    return { user: req.user };  // ✅ GraphQL returns `{ user }`
+  } catch (err) {
+    if (res && next) {
+      return res.status(403).json({ message: 'Forbidden: Invalid token' });
+    }
+    return { user: null };  // ✅ GraphQL-style response for invalid token
+  }
 };
 
 export const signToken = (username: string, email: string, _id: unknown) => {
@@ -42,6 +76,6 @@ export const signToken = (username: string, email: string, _id: unknown) => {
 export class AuthenticationError extends GraphQLError {
   constructor(message: string) {
     super(message, undefined, undefined, undefined, ['UNAUTHENTICATED']);
-    Object.defineProperty(this, 'name', { value: 'AuthenticationError' });
+    Object.defineProperty(this, 'name', { value: 'AuthenticationError' })
   }
 };
