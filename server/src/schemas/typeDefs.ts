@@ -1,14 +1,12 @@
-import { gql } from "apollo-server-express";
-
+import { gql } from "apollo-server-express"; 
 
 const typeDefs = gql`
   type User {
     id: ID!
     username: String!
     email: String!
-    savedBooks: [Book]!
-    bookCount: Int!
-
+    savedBooks: [Book]!  # ✅ Fixed this line (changed "Books" to "Book")
+  }
 
   type Book {
     bookId: String!
@@ -19,19 +17,39 @@ const typeDefs = gql`
     link: String
   }
 
-type Query {
-    getUser(id: ID!): User
+  type Auth {
+    token: String!
+    user: User
+  }
+
+  input AddBookInput {
+    bookId: String!
+    title: String!
+    authors: [String!]
+    description: String!
+    image: String
+    link: String
+  }
+
+  input UserInput {
+    username: String!
+    email: String!
+    password: String!
+  }
+
+  type Query {
+    me: User
+    getUser(username: String!): User
     getUsers: [User]
-    getBook(bookId: ID!): Book
-  }
-
+    getBook(bookId: String!): Book 
+}
   type Mutation {
-    registerUser(username: String!, email: String!, password: String!): User
-    loginUser(email: String!, password: String!): String
-    saveBook(userId: ID!, bookId: ID!): User
-    removeBook(userId: ID!, bookId: ID!): User
+    addBook(input: AddBookInput!): Book
+    addUser(input: UserInput!): Auth 
+    login(email: String!, password: String!): Auth  
+    saveBook(input: AddBookInput!): User
+    removeBook(bookId: String!): User
   }
-
 `;
 
 export default typeDefs;
