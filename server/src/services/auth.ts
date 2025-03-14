@@ -7,30 +7,36 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const SECRET_KEY = process.env.JWT_SECRET_KEY;
+
 if (!SECRET_KEY) {
   throw new Error("❌ Missing JWT_SECRET_KEY in environment variables");
 }
-interface JwtPayload {
-  _id: unknown;
-  username: string;
-  email: string,
-}
-export const authenticateGraphQL = ({ req }: { req: Request }) => {
-  let token = req.body.token || req.query.token || req.headers.authorization;
 
-  if (req.headers.authorization) {
-    token = token.split(' ').pop()?.trim();
+interface JwtPayload {
+  _id: string;
+  username: string;
+  email: string;
+}
+
+// ✅ Authenticate GraphQL requests and extract user
+export const authenticateGraphQL = async ({ req }: { req: Request }) => {
+  let token = req.headers.authorization || '';
+
+  if (token.startsWith('Bearer ')) {
+    token = token.replace('Bearer ', '').trim();
   }
 
   if (!token) {
-    return { user: null }; // ✅ Return `{ user: null }` for GraphQL
+    console.log("❌ No token found in request");
+    return { user: null };
   }
 
   try {
-    const { data }: any = jwt.verify(token, SECRET_KEY, { maxAge: '2h' });
-    return { user: data as JwtPayload };  // ✅ Return `{ user }` for GraphQL context
+    const decoded = jwt.verify(token, SECRET_KEY) as { data: JwtPayload };
+    console.log("✅ Token verified. User:", decoded.data);
+    return { user: decoded.data };
   } catch (err) {
-    console.log('❌ Invalid token');
+    console.error("❌ Invalid token:", err);
     return { user: null };
   }
 };
@@ -70,7 +76,7 @@ export const signToken = (username: string, email: string, _id: unknown) => {
   const payload = { username, email, _id };
   const secretKey: any = process.env.JWT_SECRET_KEY;
 
-  return jwt.sign({data: payload}, secretKey, { expiresIn: '2h' });
+  return jwt.sign({data: payload}, secretKey, { expiresIn: '30d' });
 };
 
 export class AuthenticationError extends GraphQLError {
