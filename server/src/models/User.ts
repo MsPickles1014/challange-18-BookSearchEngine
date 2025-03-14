@@ -1,5 +1,5 @@
 import { Schema, model, type Document } from "mongoose";
-import bcrypt from "bcrypt";
+// import bcrypt from "bcrypt";
 
 // Define the Book interface
 export interface BookDocument extends Document {
@@ -13,7 +13,7 @@ export interface BookDocument extends Document {
 
 // Define the Book Schema as a subdocument
 const bookSchema = new Schema<BookDocument>({
-  bookId: { type: String, required: true},
+  bookId: { type: String, required: true, unique: true },
   title: { type: String, required: true },
   authors: [{ type: String }],
   description: { type: String, required: true },
@@ -54,21 +54,13 @@ const userSchema = new Schema<UserDocument>({
   },
 });
 
-// 🔹 Hash password before saving user
-userSchema.pre("save", async function (next) {
-  if (this.isModified("password") || this.isNew) {
-    const saltRounds = 10;
-    this.password = await bcrypt.hash(this.password, saltRounds);
-  }
-  next();
-});
 
 
-userSchema.methods.isCorrectPassword = async function (password: string) {
+userSchema.methods.isCorrectPassword = function (password: string) {
   console.log("🔹 Comparing Input Password:", password);
-  console.log("🔹 Stored Hashed Password:", this.password);
+  console.log("🔹 Stored Plain Text Password:", this.password);
 
-  const match = await bcrypt.compare(password, this.password);
+  const match = password === this.password;
   console.log("✅ Password Match Result:", match);
 
   return match;

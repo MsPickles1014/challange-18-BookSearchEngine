@@ -30,9 +30,11 @@ const startApolloServer = async () => {
  
   app.use('/graphql', expressMiddleware(server, {
     context: async ({ req }: { req: Request }) => {
-      return await authenticateGraphQL({ req });  // ✅ Fix: Ensures a Promise is returned
+      const authContext = await authenticateGraphQL({ req });
+      return authContext; // ✅ Correctly returns `{ user: decodedUser }` or `{ user: null }`
     },
   }));
+  
 
   
 
