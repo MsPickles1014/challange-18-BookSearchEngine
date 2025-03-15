@@ -1,15 +1,12 @@
 import express from 'express';
+import cors from 'cors'; // ✅ Import CORS middleware
 import path from 'node:path';
 import type { Request, Response } from 'express';
-// Import the ApolloServer class
-import {ApolloServer,} from '@apollo/server';
-import {expressMiddleware} from '@apollo/server/express4';
+import { ApolloServer } from '@apollo/server';
+import { expressMiddleware } from '@apollo/server/express4';
 import { authenticateGraphQL } from './services/auth.js';
-
-// Import the two parts of a GraphQL schema
 import { typeDefs, resolvers } from './schemas/index.js';
 import db from './config/connection.js';
-
 
 const PORT = process.env.PORT || 3001;
 const server = new ApolloServer({
@@ -19,39 +16,41 @@ const server = new ApolloServer({
 
 const app = express();
 
-// Create a new instance of an Apollo server with the GraphQL schema
+// ✅ Apply CORS Middleware (Allow Frontend to Access API)
+app.use(cors({
+  origin: "http://localhost:3000", // Allow frontend access
+  credentials: true, // Allow cookies and authorization headers
+  methods: ['GET', 'POST', 'OPTIONS'], // Explicitly allow these methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Explicitly allow these headers
+}));
+
 const startApolloServer = async () => {
   await server.start();
   await db;
 
   app.use(express.urlencoded({ extended: false }));
-  
   app.use(express.json());
- 
-  app.use('/graphql', expressMiddleware(server, {
+
+  // ✅ Apply CORS again specifically for GraphQL requests
+  app.use('/graphql', cors<cors.CorsRequest>(), expressMiddleware(server, {
     context: async ({ req }: { req: Request }) => {
       const authContext = await authenticateGraphQL({ req });
-      return authContext; // ✅ Correctly returns `{ user: decodedUser }` or `{ user: null }`
+      return authContext; // ✅ Returns `{ user: decodedUser }` or `{ user: null }`
     },
   }));
-  
-
-  
 
   if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../client/dist')));
-
     app.get('*', (_req: Request, res: Response) => {
       res.sendFile(path.join(__dirname, '../client/dist/index.html'));
     });
   }
 
   app.listen(PORT, () => {
-    console.log(`API server running on port ${PORT}!`);
-    console.log(`Use GraphQL at http://localhost:${PORT}/graphql`);
+    console.log(`✅ API server running on port ${PORT}!`);
+    console.log(`✅ GraphQL is available at http://localhost:${PORT}/graphql`);
   });
-
 };
 
-// Call the async function to start the server
+// Start the server
 startApolloServer();
