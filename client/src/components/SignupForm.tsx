@@ -2,14 +2,27 @@ import { useState } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { Form, Button, Alert } from 'react-bootstrap';
 
-import { createUser } from '../utils/API';
+import { useMutation } from "@apollo/client"; // ✅ Import GraphQL hook
+
+import { SIGNUP_USER } from "../utils/mutations"; // ✅ Import GraphQL mutation
+
 import Auth from '../utils/auth';
 import type { User } from '../models/User';
+// import { createUser } from '../utils/API';
 
 // biome-ignore lint/correctness/noEmptyPattern: <explanation>
-const SignupForm = ({}: { handleModalClose: () => void }) => {
+
+const SignupForm = ({ handleModalClose }: { handleModalClose?: () => void }) => {
+  const [addUser, { error }] = useMutation(SIGNUP_USER);
+
   // set initial form state
-  const [userFormData, setUserFormData] = useState<User>({ username: '', email: '', password: '', savedBooks: [] });
+  const [userFormData, setUserFormData] = useState<User>({
+     username: '', 
+     email: '', 
+     password: '', 
+     savedBooks: [] });
+
+
   // set state for form validation
   const [validated] = useState(false);
   // set state for alert
@@ -22,25 +35,26 @@ const SignupForm = ({}: { handleModalClose: () => void }) => {
 
   const handleFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    // check if form has everything (as per react-bootstrap docs)
-    const form = event.currentTarget;
-    if (form.checkValidity() === false) {
-      event.preventDefault();
-      event.stopPropagation();
+  
+    if (!userFormData.username || !userFormData.email || !userFormData.password) {
+      setShowAlert(true);
+      return;
     }
-
+  
     try {
-      const response = await createUser(userFormData);
-
-      if (!response.ok) {
-        throw new Error('something went wrong!');
+      const { data } = await addUser({ variables: { input: userFormData } });
+  
+      if (!data) {
+        throw new Error("Signup failed!");
       }
-
-      const { token } = await response.json();
-      Auth.login(token);
+  
+      Auth.login(data.addUser.token); // ✅ Save token & log in user
+  
+      if (handleModalClose) {
+        handleModalClose(); // ✅ Close modal only if function exists
+      }
     } catch (err) {
-      console.error(err);
+      console.error("Signup Error:", err);
       setShowAlert(true);
     }
 
@@ -57,9 +71,9 @@ const SignupForm = ({}: { handleModalClose: () => void }) => {
       {/* This is needed for the validation functionality above */}
       <Form noValidate validated={validated} onSubmit={handleFormSubmit}>
         {/* show alert if server response is bad */}
-        <Alert dismissible onClose={() => setShowAlert(false)} show={showAlert} variant='danger'>
-          Something went wrong with your signup!
-        </Alert>
+        <Alert dismissible onClose={() => setShowAlert(false)} show={showAlert || !!error} variant="danger">
+  {error ? error.message : "Something went wrong with your signup!"}
+</Alert>
 
         <Form.Group className='mb-3'>
           <Form.Label htmlFor='username'>Username</Form.Label>
