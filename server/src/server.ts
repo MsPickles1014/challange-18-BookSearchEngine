@@ -1,9 +1,8 @@
-import express from 'express';
+import express, { Request, Response } from 'express'; // ✅ Removed unused NextFunction
 import cors from 'cors'; // ✅ Import CORS middleware
 import path from 'node:path';
-import type { Request, Response } from 'express';
 import { ApolloServer } from '@apollo/server';
-import { expressMiddleware } from '@apollo/server/express4';
+import { expressMiddleware, ExpressContextFunctionArgument } from '@apollo/server/express4';
 import { authenticateGraphQL } from './services/auth.js';
 import { typeDefs, resolvers } from './schemas/index.js';
 import db from './config/connection.js';
@@ -31,13 +30,13 @@ const startApolloServer = async () => {
   app.use(express.urlencoded({ extended: false }));
   app.use(express.json());
 
-  // ✅ Apply CORS again specifically for GraphQL requests
-  app.use('/graphql', cors<cors.CorsRequest>(), expressMiddleware(server, {
-    context: async ({ req }: { req: Request }) => {
-      const authContext = await authenticateGraphQL({ req });
-      return authContext; // ✅ Returns `{ user: decodedUser }` or `{ user: null }`
+  // ✅ Fix: Ensure correct `context` function type
+  app.use('/graphql', expressMiddleware(server, {
+    context: async (context: ExpressContextFunctionArgument) => {
+      const { req } = context; // ✅ Correctly extract `req`
+      return authenticateGraphQL({ req }); // ✅ Ensures correct return type
     },
-  }));
+  }) as express.RequestHandler); // ✅ Explicitly cast as `RequestHandler`
 
   if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../client/dist')));
