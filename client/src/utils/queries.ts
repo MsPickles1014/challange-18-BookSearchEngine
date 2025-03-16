@@ -17,24 +17,24 @@ export const GET_ME = gql`
     }
   }
 `;
-
-export const GET_USER = gql`
-  query GetUser($username: String!) {
-    getUser(username: $username) {
-      id
-      username
-      email
-      savedBooks {
-        bookId
-        title
-        authors
-        description
-        image
-        link
-      }
-    }
-  }
-`;
+// Future Enhancements 
+// export const GET_USER = gql`
+//   query GetUser($username: String!) {
+//     getUser(username: $username) {
+//       id
+//       username
+//       email
+//       savedBooks {
+//         bookId
+//         title
+//         authors
+//         description
+//         image
+//         link
+//       }
+//     }
+//   }
+// `;
 
 // Future 
 // export const GET_USERS = gql`

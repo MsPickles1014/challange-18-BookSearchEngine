@@ -61,7 +61,7 @@ const SearchBooks = () => {
   };
 
   // 📌 Use GraphQL mutation to save books
-  const [saveBookMutation, { error }] = useMutation(SAVE_BOOK);
+  const [saveBookMutation, { }] = useMutation(SAVE_BOOK);
 
   // 📌 Function to save a book
   const handleSaveBook = async (bookId: string) => {
