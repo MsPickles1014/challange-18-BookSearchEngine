@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express'; // ✅ Removed unused NextFunction
 import cors from 'cors'; // ✅ Import CORS middleware
 import path from 'node:path';
+import { fileURLToPath } from 'url';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware, ExpressContextFunctionArgument } from '@apollo/server/express4';
 import { authenticateGraphQL } from './services/auth.js';
@@ -39,7 +40,15 @@ const startApolloServer = async () => {
   }) as express.RequestHandler); // ✅ Explicitly cast as `RequestHandler`
 
   if (process.env.NODE_ENV === 'production') {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
     app.use(express.static(path.join(__dirname, '../client/dist')));
+
+    
+    app.use(express.static(path.join(__dirname, '../client/dist')));
+
+
+
     app.get('*', (_req: Request, res: Response) => {
       res.sendFile(path.join(__dirname, '../client/dist/index.html'));
     });
