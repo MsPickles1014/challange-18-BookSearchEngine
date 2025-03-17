@@ -5,12 +5,12 @@
   "main": "dist/server.js",
   "type": "module",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/server.js",
-    "dev": "ts-node src/server.ts",
-    "watch": "nodemon --watch server/src --exec ts-node server/src/server.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "build": "tsc",
+  "start": "node dist/server.js",
+  "dev": "ts-node src/server.ts",
+  "watch": "nodemon --watch src --exec ts-node src/server.ts"
+}
+,
   "nodemonConfig": {
     "watch": [
       "src"
