@@ -1,3 +1,5 @@
+ 
+
 
 {
   "name": "googlebooks-app",
@@ -22,13 +24,17 @@
     "@types/bcrypt": "^5.0.2",
     "concurrently": "^8.2.0"
   },
-  "dependencies": {
-    "apollo-server-express": "^3.13.0",
-    "bcrypt": "^5.1.1",
-    "graphql": "^16.10.0",
-    "graphql-playground-html": "^1.6.30"
-  }
+ "dependencies": {
+  "@apollo/server": "^4.11.3",
+  "express": "^4.21.2",
+  "cors": "^2.8.5",
+  "dotenv": "^16.4.7",
+  "graphql": "^16.10.0",
+  "graphql-playground-html": "^1.6.30",
+  "bcrypt": "^5.1.1"
 }
+
+  }
 
 
 
