@@ -8,7 +8,7 @@
   "build": "tsc",
   "start": "node dist/server.js",
   "dev": "ts-node src/server.ts",
-  "watch": "nodemon --watch src --exec ts-node src/server.ts"
+  "watch": "nodemon" 
 }
 ,
   "nodemonConfig": {
