@@ -23,7 +23,6 @@
   "license": "ISC",
   "dependencies": {
     "@apollo/server": "^4.11.3",
-    "brcypt": "^1.0.1",
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "express4": "^0.0.1",
