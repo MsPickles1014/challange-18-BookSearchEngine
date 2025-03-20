@@ -18,7 +18,7 @@ const app = express();
 
 // ✅ Apply CORS Middleware (Allow Frontend to Access API)
 app.use(cors({
-  origin: "http://localhost:3000", // Allow frontend access
+  origin: " https://challange-18-BookSearchEngine-server-and.onrender.com", // Allow frontend access
   credentials: true, // Allow cookies and authorization headers
   methods: ['GET', 'POST', 'OPTIONS'], // Explicitly allow these methods
   allowedHeaders: ['Content-Type', 'Authorization'], // Explicitly allow these headers
