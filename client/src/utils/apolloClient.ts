@@ -1,12 +1,13 @@
 import { ApolloClient, InMemoryCache, createHttpLink } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 
-// Define the backend GraphQL API endpoint
+// ✅ Use the correct GraphQL API endpoint
 const httpLink = createHttpLink({
-  uri: "http://localhost:3001/graphql", // Change this if your backend is deployed
+  uri: "https://challange-18-BookSearchEngine-server-and.onrender.com/graphql", // ✅ Ensure `/graphql` is included
+  credentials: "include", // ✅ Ensure cookies & auth headers are sent
 });
 
-// Attach authentication token (JWT) to requests
+// ✅ Attach authentication token (JWT) to requests
 const authLink = setContext((_, { headers }) => {
   const token = localStorage.getItem("id_token"); // Get token from localStorage
   return {
@@ -17,7 +18,7 @@ const authLink = setContext((_, { headers }) => {
   };
 });
 
-// Initialize Apollo Client
+// ✅ Initialize Apollo Client
 const client = new ApolloClient({
   link: authLink.concat(httpLink),
   cache: new InMemoryCache(),
