@@ -13,7 +13,7 @@ export interface BookDocument extends Document {
 
 // Define the Book Schema as a subdocument
 const bookSchema = new Schema<BookDocument>({
-  bookId: { type: String, required: true, unique: true },
+  bookId: { type: String, required: true, unique: false},
   title: { type: String, required: true },
   authors: [{ type: String }],
   description: { type: String, required: true },
